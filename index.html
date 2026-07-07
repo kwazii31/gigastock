@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GAG2 SIMPLE TRACKER</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Chakra+Petch:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="bg-grid" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-a" aria-hidden="true"></div>
+  <div class="bg-orb bg-orb-b" aria-hidden="true"></div>
+
+  <main class="app-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Community Predictor Build</p>
+        <h1>GAG2 simple tracker</h1>
+        <p class="sub">Live view built from jcgaming-official/GAG-2-Predictor core data.</p>
+      </div>
+      <div class="status-stack">
+        <span id="sourceBadge" class="chip">Source: booting</span>
+        <span id="clockBadge" class="chip chip-strong">--:--</span>
+      </div>
+    </header>
+
+    <section class="meta-strip">
+      <div class="meta-card"><span>Cycle</span><strong id="cycleInfo">Loading...</strong></div>
+      <div class="meta-card"><span>Window</span><strong id="windowInfo">Loading...</strong></div>
+      <div class="meta-card"><span>Next Restock</span><strong id="nextInfo">Loading...</strong></div>
+      <div class="meta-card"><span>Seed Anchor</span><strong id="anchorInfo">Loading...</strong></div>
+    </section>
+
+    <nav class="tabs" aria-label="Data tabs">
+      <button class="tab is-active" data-tab="seeds">Seeds</button>
+      <button class="tab" data-tab="gears">Gears</button>
+      <button class="tab" data-tab="crates">Crates</button>
+      <button class="tab" data-tab="pets">Rarest Pets</button>
+      <button class="tab" data-tab="weather">Weather</button>
+      <button class="tab" data-tab="events">Website Details</button>
+    </nav>
+
+    <section class="panel">
+      <div id="toolbar" class="toolbar"></div>
+      <div id="content" class="content"></div>
+    </section>
+
+    <section class="console-wrap">
+      <details class="log-dropdown">
+        <summary>Run Log</summary>
+        <pre id="log" class="log">Starting...</pre>
+      </details>
+    </section>
+  </main>
+
+
+  <details class="log-dropdown">
+    
+  <template id="listTemplate">
+    <div class="list-head row-grid">
+      <span>Name</span>
+      <span>Rarity</span>
+      <span>Price</span>
+      <span>Now</span>
+      <span>Next (most likely)</span>
+    </div>
+    <div class="list-body" id="listBody"></div>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
