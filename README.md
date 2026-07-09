@@ -13,4 +13,4 @@ gigastock is a simple user freindly webapp/website to cheack gag2 (Grow A Garden
 
 ## Contributing
 
-Contributions are welcome! Feel free to open an issue or submit a pull request.
+sorry guys its just me 🥀🫩✌️
