@@ -1,28 +1,16 @@
-# GAG2 Flux Deck
+# gigastock
 
-A brand-new standalone web app that uses:
-https://github.com/jcgaming-official/GAG-2-Predictor
+gigastock is a simple user freindly webapp/website to cheack gag2 (Grow A Garden 2) stocks 
 
-## What it does
 
-- Loads predictor core DATA from script.js
-- Loads PETS_DATA from pets.js
-- Renders tabs for Seeds, Gears, Crates, Rarest Pets, and Weather keys
-- Computes current and next stock quantities using seedAnchor and period
-- Updates cycle timer live every second
+## Features
 
-## Run
+- Work in progress
+- Easy to use
+- TONS more features coming 
 
-1. Open a terminal in this folder.
-2. Run:
 
-   py -m http.server 8081
 
-3. Open:
+## Contributing
 
-   http://localhost:8081/
-
-## Notes
-
-- This app reads public repository assets through jsDelivr.
-- If jsDelivr is blocked on your network, you can switch URLs in app.js to raw.githubusercontent.com equivalents.
+Contributions are welcome! Feel free to open an issue or submit a pull request.
