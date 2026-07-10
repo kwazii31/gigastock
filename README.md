@@ -1,13 +1,13 @@
 # gigastock
 
-gigastock is a simple user freindly webapp/website to cheack gag2 (Grow A Garden 2) stocks 
+GigaStock is a simple, user-friendly web app to check live stock updates.
 
 
 ## Features
 
 - Work in progress
 - Easy to use
-- TONS more features coming 
+- Tons more features coming
 
 
 

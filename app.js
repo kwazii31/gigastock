@@ -19,19 +19,19 @@ const state = {
   tab: "seeds",
   search: "",
   rarity: "all",
-  stockFilter: "all"
+  stockFilter: "all",
+  selectedSeed: ""
 };
 
 const refs = {
   content: document.getElementById("content"),
   toolbar: document.getElementById("toolbar"),
+  quickCheck: document.getElementById("quickCheck"),
   log: document.getElementById("log"),
   sourceBadge: document.getElementById("sourceBadge"),
   clockBadge: document.getElementById("clockBadge"),
-  cycleInfo: document.getElementById("cycleInfo"),
-  windowInfo: document.getElementById("windowInfo"),
   nextInfo: document.getElementById("nextInfo"),
-  anchorInfo: document.getElementById("anchorInfo")
+  liveInfo: document.getElementById("liveInfo")
 };
 
 function normalizeStockFilter(value) {
@@ -191,11 +191,68 @@ function enrichList(sourceList, cycle) {
 
 function renderMeta() {
   const cycle = getCycleMeta();
-  refs.sourceBadge.textContent = "Source: GAG-2-Predictor";
-  refs.cycleInfo.textContent = `${cycle.period}s`;
-  refs.windowInfo.textContent = `#${cycle.win}`;
+  refs.sourceBadge.textContent = "Source: GigaStock Feed";
   refs.nextInfo.textContent = `${clock(cycle.remaining)} (${fmtUnix(cycle.nextTs)})`;
-  refs.anchorInfo.textContent = `${state.data.seedAnchor || "-"}`;
+  refs.liveInfo.textContent = `Live sync every ${cycle.period}s`;
+}
+
+function renderQuickCheck() {
+  if (!refs.quickCheck || !state.data) return;
+
+  const cycle = getCycleMeta();
+  const seeds = enrichList(state.data.seeds || [], cycle).sort((a, b) => String(a.name).localeCompare(String(b.name)));
+
+  if (!seeds.length) {
+    refs.quickCheck.innerHTML = `
+      <div class="quick-check-card">
+        <h2>Custom Seed Check</h2>
+        <p>No seed data available right now.</p>
+      </div>
+    `;
+    return;
+  }
+
+  if (!state.selectedSeed || !seeds.some((seed) => seed.name === state.selectedSeed)) {
+    state.selectedSeed = seeds[0].name;
+  }
+
+  const options = seeds
+    .map((seed) => `<option value="${seed.name}" ${seed.name === state.selectedSeed ? "selected" : ""}>${seed.name}</option>`)
+    .join("");
+
+  refs.quickCheck.innerHTML = `
+    <div class="quick-check-card">
+      <h2>Custom Seed Check</h2>
+      <div class="seed-check-controls">
+        <select id="seedQuickSelect" aria-label="Choose a seed">
+          ${options}
+        </select>
+        <button id="seedQuickBtn" type="button">Check Seed</button>
+      </div>
+      <div id="seedQuickResult" class="seed-check-result"></div>
+    </div>
+  `;
+
+  const select = document.getElementById("seedQuickSelect");
+  const checkBtn = document.getElementById("seedQuickBtn");
+  const result = document.getElementById("seedQuickResult");
+
+  const updateResult = () => {
+    state.selectedSeed = select.value;
+    const chosen = seeds.find((seed) => seed.name === state.selectedSeed) || seeds[0];
+    const inStock = chosen.nowQty > 0;
+    result.classList.toggle("is-in-stock", inStock);
+    result.classList.toggle("is-out-stock", !inStock);
+    result.innerHTML = `
+      <strong>${chosen.name}</strong>
+      <span>${inStock ? "In stock" : "Out of stock"}</span>
+      <small>Available now: ${chosen.nowQty}</small>
+    `;
+  };
+
+  select.addEventListener("change", updateResult);
+  checkBtn.addEventListener("click", updateResult);
+  updateResult();
 }
 
 function rowTemplate(item) {
@@ -363,6 +420,7 @@ function renderActive() {
 
   syncActiveTabButton();
   renderMeta();
+  renderQuickCheck();
   renderToolbar();
 
   if (state.tab === "seeds") renderStockTab("seeds");
@@ -388,7 +446,7 @@ function renderEventsTab() {
   refs.content.innerHTML = `
     <div class="list-row">
       <strong>Website Info</strong>
-      <p>This is a community-built live view for the GAG2 Flux Deck predictor.</p>
+      <p>This is a community-built live view for GigaStock.</p>
     </div>
   `;
 }
