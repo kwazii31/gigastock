@@ -45,6 +45,8 @@ body {
   background-size: 160px 160px, 190px 190px, 34px 34px, 34px 34px;
   mask-image: radial-gradient(circle at center, rgba(0, 0, 0, 0.9), transparent 85%);
   pointer-events: none;
+  will-change: transform, background-position;
+  animation: grid-drift 6s linear infinite;
 }
 
 .bg-orb {
@@ -55,6 +57,7 @@ body {
   filter: blur(90px);
   opacity: 0.2;
   pointer-events: none;
+  animation: orb-float 18s ease-in-out infinite;
 }
 
 .bg-orb-a {
@@ -67,6 +70,32 @@ body {
   background: var(--glow-c);
   bottom: -12rem;
   left: -8rem;
+  animation-delay: -9s;
+}
+
+@keyframes grid-drift {
+  0% {
+    transform: translate3d(0, 0, 0);
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+  50% {
+    transform: translate3d(0, -16px, 0);
+    background-position: 64px 48px, -42px 30px, 0 0, 0 0;
+  }
+  100% {
+    transform: translate3d(0, 0, 0);
+    background-position: 0 0, 0 0, 0 0, 0 0;
+  }
+}
+
+@keyframes orb-float {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, -224px, 0) scale(1.04);
+  }
 }
 
 .app-shell {

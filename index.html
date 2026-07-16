@@ -14,7 +14,7 @@
   <div class="bg-orb bg-orb-a" aria-hidden="true"></div>
   <div class="bg-orb bg-orb-b" aria-hidden="true"></div>
 
-  <main class="app-shell">
+  <main class="app-shell" aria-live="polite">
     <header class="topbar">
       <div>
         <p class="eyebrow">Live Wiki Feed</p>
@@ -29,23 +29,28 @@
 
     <section class="meta-strip">
       <div class="meta-card"><span>Cycle</span><strong id="cycleInfo">Loading...</strong></div>
-      <div class="meta-card"><span>Window</span><strong id="windowInfo">Loading...</strong></div>
+      <div class="meta-card"><span>Restock</span><strong id="windowInfo">Loading...</strong></div>
       <div class="meta-card"><span>Next Restock</span><strong id="nextInfo">Loading...</strong></div>
       <div class="meta-card"><span>Live Update</span><strong id="anchorInfo">Loading...</strong></div>
     </section>
 
-    <nav class="tabs" aria-label="Data tabs">
-      <button class="tab is-active" data-tab="seeds">Seeds</button>
-      <button class="tab" data-tab="gears">Gears</button>
-      <button class="tab" data-tab="crates">Crates</button>
-      <button class="tab" data-tab="pets">Rarest Pets</button>
-      <button class="tab" data-tab="weather">Weather</button>
-      <button class="tab" data-tab="events">Website Details</button>
+    <nav class="tabs" aria-label="Data tabs" role="tablist">
+      <button class="tab is-active" role="tab" aria-selected="true" aria-controls="content" data-tab="seeds">Seeds</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="content" data-tab="gears">Gears</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="content" data-tab="crates">Crates</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="content" data-tab="pets">Rarest Pets</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="content" data-tab="weather">Weather</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="content" data-tab="events">Website Details</button>
     </nav>
 
-    <section class="panel">
-      <div id="toolbar" class="toolbar"></div>
-      <div id="content" class="content"></div>
+    <section class="panel" aria-label="Tracker results">
+      <div id="toolbar" class="toolbar" aria-label="Filters"></div>
+      <div id="content" class="content" role="tabpanel" aria-live="polite">
+        <div class="list-row">
+          <strong>Loading tracker data...</strong>
+          <p class="sub">Fetching predictor metadata, pets list, and live stock feed.</p>
+        </div>
+      </div>
     </section>
 
     <section class="console-wrap">
@@ -63,10 +68,19 @@
       <span>Rarity</span>
       <span>Price</span>
       <span>Now</span>
-      <span>Next (most likely)</span>
+      <span>Next (broken rn)</span>
     </div>
     <div class="list-body" id="listBody"></div>
   </template>
+
+  <noscript>
+    <section class="panel" style="margin-top:1rem;">
+      <div class="list-row">
+        <strong>JavaScript is required.</strong>
+        <p class="sub">Enable JavaScript to use live stock refresh, pets, weather, and tab filtering.</p>
+      </div>
+    </section>
+  </noscript>
 
   <script src="app.js"></script>
 </body>

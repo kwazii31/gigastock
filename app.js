@@ -1,3 +1,6 @@
+// --------------------------------------------------
+// App configuration and constants
+// --------------------------------------------------
 const SCRIPT_URL = "https://cdn.jsdelivr.net/gh/jcgaming-official/GAG-2-Predictor@main/script.js";
 const PETS_URL = "https://cdn.jsdelivr.net/gh/jcgaming-official/GAG-2-Predictor@main/pets.js";
 const LOCAL_WIKI_PROXY_BASE = "http://localhost:8000";
@@ -5,25 +8,33 @@ const WIKI_STOCK_PATH = "/api/gag2-stock.json";
 const OFFICIAL_WIKI_STOCK_API_URL = "https://api.growagarden2wiki.net/api/v1/games/grow-a-garden-2/stock";
 const CORS_PROXY_URL = "https://corsproxy.io/?";
 
+// Helpers for running locally on localhost
 function isLocalhostHost(hostname) {
   return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
 }
 
+// Build the list of JSON endpoints to try for live stock data.
+// We try the fastest/most reliable sources first, then fall back.
 function getLiveStockJsonCandidates() {
   const candidates = [];
 
+  // Local proxy running in this project (recommended for local file mode)
   candidates.push(`${LOCAL_WIKI_PROXY_BASE}${WIKI_STOCK_PATH}`);
 
+  // If the app is served over HTTP/HTTPS, try the same origin path first.
   if (window.location.protocol.startsWith("http")) {
     candidates.push(`${window.location.origin}${WIKI_STOCK_PATH}`);
   }
 
+  // Official live API endpoint used by the wiki.
   candidates.push(OFFICIAL_WIKI_STOCK_API_URL);
 
+  // If we are on localhost, we can try a CORS proxy as a last resort.
   if (window.location.protocol.startsWith("http") && isLocalhostHost(window.location.hostname)) {
     candidates.push(`${CORS_PROXY_URL}${encodeURIComponent(OFFICIAL_WIKI_STOCK_API_URL)}`);
   }
 
+  // Older endpoints kept for compatibility but may be broken.
   candidates.push("https://growagarden2wiki.net/api/gag2-stock.json");
   candidates.push("https://www.growagarden2wiki.net/api/gag2-stock.json");
 
@@ -42,16 +53,18 @@ const rarityRank = {
   Prismatic: 9
 };
 
+// Global application state.
 const state = {
-  data: null,
-  liveStock: null,
-  pets: [],
+  data: null,        // predictor metadata from script.js
+  liveStock: null,   // live stock data from wiki/api
+  pets: [],          // pet metadata from pets.js
   tab: "seeds",
   search: "",
   rarity: "all",
   stockFilter: "all"
 };
 
+// Live refresh state and diagnostics.
 const liveRefresh = {
   inFlight: false,
   lastFetchMs: 0,
@@ -59,6 +72,7 @@ const liveRefresh = {
   blockedHint: ""
 };
 
+// Cached DOM element references.
 const refs = {
   content: document.getElementById("content"),
   toolbar: document.getElementById("toolbar"),
@@ -71,6 +85,7 @@ const refs = {
   anchorInfo: document.getElementById("anchorInfo")
 };
 
+// Clean up filter values coming from the URL or user input.
 function normalizeStockFilter(value) {
   if (value === "in-stock" || value === "out-of-stock" || value === "all") {
     return value;
@@ -83,6 +98,9 @@ function normalizeTab(value) {
   return validTabs.includes(value) ? value : "seeds";
 }
 
+// --------------------------------------------------
+// URL and filter helpers
+// --------------------------------------------------
 function applyFiltersFromUrl() {
   const params = new URLSearchParams(window.location.search);
   const search = (params.get("search") || "").trim().toLowerCase();
@@ -100,6 +118,7 @@ function syncActiveTabButton() {
   document.querySelectorAll(".tab").forEach((btn) => {
     const active = btn.dataset.tab === state.tab;
     btn.classList.toggle("is-active", active);
+    btn.setAttribute("aria-selected", active ? "true" : "false");
   });
 }
 
@@ -126,6 +145,10 @@ function clock(seconds) {
   return `${m}:${String(rem).padStart(2, "0")}`;
 }
 
+// --------------------------------------------------
+// Network helpers
+// --------------------------------------------------
+// Simple fetch helpers with error handling.
 async function fetchText(url) {
   const response = await fetch(url, {
     headers: { Accept: "text/html, text/javascript, text/plain, */*" }
@@ -146,6 +169,10 @@ async function fetchJson(url) {
   return response.json();
 }
 
+// Try all live stock endpoints until one works.
+// --------------------------------------------------
+// Live stock helpers
+// --------------------------------------------------
 async function fetchLiveStock() {
   const jsonCandidates = getLiveStockJsonCandidates();
   const failures = [];
@@ -197,6 +224,10 @@ function formatRelativeTimeFromMs(timestamp) {
   return `${Math.floor(elapsed / 3600)}h ago`;
 }
 
+// --------------------------------------------------
+// Parsing helpers
+// --------------------------------------------------
+// Convert live stock payload into a format we can use in the UI.
 function parseWikiStockApi(payload) {
   const stock = payload?.stock || {};
   const rotation = payload?.rotation || {};
@@ -235,21 +266,37 @@ function parseWikiStockApi(payload) {
   return result;
 }
 
-function ensureRocketPopCatalogSeed() {
+// --------------------------------------------------
+// Seed catalog helpers
+// --------------------------------------------------
+function ensureSeedCatalogEntries() {
   if (!Array.isArray(state.data?.seeds)) return;
 
-  const exists = state.data.seeds.some((item) => normalizeItemName(item.name) === "rocket pop");
-  if (exists) return;
+  const catalog = state.data.seeds;
+  const existingKeys = new Set(catalog.map((item) => normalizeItemName(item.name)));
 
-  state.data.seeds.push({
-    name: "Rocket Pop",
-    rarity: "Legendary",
-    price: null,
-    q: [0]
-  });
-  log("Added Rocket Pop to local seed catalog.");
+  function addSeed(name, rarity = "Unknown") {
+    const key = normalizeItemName(name);
+    if (!key || existingKeys.has(key)) return;
+    existingKeys.add(key);
+    catalog.push({
+      name,
+      rarity,
+      price: null,
+      q: [0]
+    });
+    log(`Added ${name} to local seed catalog.`);
+  }
+
+  addSeed("Rocket Pop", "Legendary");
+
+  const liveSeedNames = Array.isArray(state.liveStock?.seeds) ? state.liveStock.seeds.map((item) => item.name).filter(Boolean) : [];
+  liveSeedNames.forEach((name) => addSeed(name));
 }
 
+// --------------------------------------------------
+// Live refresh logic
+// --------------------------------------------------
 async function refreshLiveStock(reason = "scheduled") {
   if (liveRefresh.inFlight) return;
 
@@ -340,6 +387,9 @@ function parsePetsFromScript(petsText) {
   return Function(`"use strict"; return (${petsLiteral});`)();
 }
 
+// --------------------------------------------------
+// Timing helpers
+// --------------------------------------------------
 function getCycleMeta() {
   const period = state.data?.period || 300;
   const anchor = state.data?.seedAnchor || 0;
@@ -492,6 +542,9 @@ function renderPetsTab() {
   log(`Rendered ${filtered.length} pets.`);
 }
 
+// --------------------------------------------------
+// Renderers
+// --------------------------------------------------
 function renderWeatherTab() {
   if (state.liveStock) {
     const liveWeather = state.liveStock.weatherText || "Live weather data loaded from the wiki page.";
@@ -626,13 +679,13 @@ async function boot() {
     log("Loading predictor metadata and live wiki stock...");
     const [scriptText, petsText] = await Promise.all([fetchText(SCRIPT_URL), fetchText(PETS_URL)]);
     state.data = parseDataFromScript(scriptText);
-    ensureRocketPopCatalogSeed();
     state.pets = parsePetsFromScript(petsText);
     applyFiltersFromUrl();
 
     try {
       const { liveStock, sourceUrl } = await fetchLiveStock();
       state.liveStock = liveStock;
+      ensureSeedCatalogEntries();
       liveRefresh.lastFetchMs = Date.now();
       liveRefresh.lastErrorSignature = "";
       liveRefresh.blockedHint = "";
